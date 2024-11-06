@@ -203,8 +203,16 @@ extension MentionListener /* Public */ {
 
         let (text, selectedRange) = mentionsTextView.attributedText
             |> add(createMention, spaceAfterMention: spaceAfterMention, at: currentMentionRange, with: mentionTextAttributes)
-        mentionsTextView.attributedText = text
-        mentionsTextView.selectedRange = selectedRange
+        // since ios18, set attributedText will call willChangeText, it cause the wrong value
+        if #available(iOS 18, *) {
+            mentionsTextView.delegate = nil
+            mentionsTextView.attributedText = text
+            mentionsTextView.selectedRange = selectedRange
+            mentionsTextView.delegate = self
+        } else {
+            mentionsTextView.attributedText = text
+            mentionsTextView.selectedRange = selectedRange
+        }
 
         notifyOfTextViewChange(on: mentionsTextView)
 
